@@ -367,7 +367,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: "./terraform/gcp-site"
+        working-directory: "./workflow-guides/smcn/mcn-distributed-apps-l3/terraform/gcp-site"
     env: 
       TF_VAR_name: ${{ needs.apply_variables.outputs.TF_VAR_name }}
       TF_VAR_prefix: ${{ needs.apply_variables.outputs.TF_VAR_prefix }}
@@ -429,7 +429,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: "./terraform/gcp-gke"
+        working-directory: "./workflow-guides/smcn/mcn-distributed-apps-l3/terraform/gcp-gke"
     env: 
       TF_VAR_name: ${{ needs.apply_variables.outputs.TF_VAR_name }}
       TF_VAR_prefix: ${{ needs.apply_variables.outputs.TF_VAR_prefix }}
@@ -483,7 +483,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: "./terraform/azure-aks"
+        working-directory: "./workflow-guides/smcn/mcn-distributed-apps-l3/terraform/azure-aks"
     env: 
       TF_VAR_name: ${{ needs.apply_variables.outputs.TF_VAR_name }}
       TF_VAR_prefix: ${{ needs.apply_variables.outputs.TF_VAR_prefix }}
@@ -540,7 +540,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: "./terraform/aws-eks-nic"
+        working-directory: "./workflow-guides/smcn/mcn-distributed-apps-l3/terraform/aws-eks-nic"
     env: 
       TF_CLOUD_WORKSPACE_SECUREMCN_AWS_EKS_NIC: ${{ needs.apply_variables.outputs.TF_CLOUD_WORKSPACE_SECUREMCN_AWS_EKS_NIC }}
       TF_VAR_name: ${{ needs.apply_variables.outputs.TF_VAR_name }}
@@ -589,7 +589,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: "./terraform/workload"
+        working-directory: "./workflow-guides/smcn/mcn-distributed-apps-l3/terraform/workload"
     env: 
       TF_VAR_name: ${{ needs.apply_variables.outputs.TF_VAR_name }}
       TF_VAR_prefix: ${{ needs.apply_variables.outputs.TF_VAR_prefix }}

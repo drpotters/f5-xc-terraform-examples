@@ -424,6 +424,7 @@ jobs:
       TF_VAR_offline_survivability_mode: "true"
       TF_VAR_tags: ${{ needs.xc_config.outputs.tags }}
       TF_VAR_apply_outside_sg_rules: "false"
+      TF_VAR_software_version: "crt-20240819-2917"
     secrets: 
       TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }} 
       TF_CLOUD_ORGANIZATION: ${{ secrets.TF_CLOUD_ORGANIZATION }} 

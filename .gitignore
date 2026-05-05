@@ -32,3 +32,4 @@ override.tf.json
 *.back
 
 *.DS_Store
+.vscode/settings.json

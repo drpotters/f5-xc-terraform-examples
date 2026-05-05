@@ -33,6 +33,12 @@ resource "volterra_site_mesh_group" "smg" {
   full_mesh {
     control_and_data_plane_mesh = true
   }
+  
+  // One of the arguments from this list "bfd_disabled bfd_enabled" must be set
+  bfd_disabled = true
+  
+  // One of the arguments from this list "disable_re_fallback enable_re_fallback" must be set
+  enable_re_fallback = true
 
   depends_on = [volterra_virtual_site.site]
 }

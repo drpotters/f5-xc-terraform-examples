@@ -444,10 +444,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          repository: f5devcentral/f5-xc-terraform-examples
+          repository: drpotters/f5-xc-terraform-examples@test
           
       - id: apply_variables 
-        uses: "f5devcentral/f5-xc-terraform-examples/.github/actions/apply-variables@main" 
+        uses: "drpotters/f5-xc-terraform-examples/.github/actions/apply-variables@test" 
         with: 
           vars_json: "${{ toJSON(vars) }}" 
           vars_prefix: "AWSVS_TF_VAR_"

@@ -318,7 +318,7 @@ jobs:
       AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }} 
 
   aws_vpc_site: 
-    uses: f5devcentral/f5-xc-terraform-examples/.github/workflows/aws-vpc-site-apply.yaml@main
+    uses: drpotters/f5-xc-terraform-examples/.github/workflows/aws-vpc-site-apply.yaml@test
     if: (inputs.deployment == 'aws-vpc-site' || inputs.deployment == 'deploy-resources')
     needs: [apply_variables, aws_credentials, aws_networking, xc_config]
     name: "AWS VPC Site"
@@ -404,7 +404,7 @@ jobs:
       XC_AZURE_CLOUD_CREDENTIALS_NAME: ${{ secrets.XC_AZURE_CLOUD_CREDENTIALS_NAME }}
 
   azure_vnet_site: 
-    uses: f5devcentral/f5-xc-terraform-examples/.github/workflows/azure-vnet-site-apply.yaml@main
+    uses: drpotters/f5-xc-terraform-examples/.github/workflows/azure-vnet-site-apply.yaml@test
     if: (inputs.deployment == 'azure-vnet-site' || inputs.deployment == 'deploy-resources')
     needs: [apply_variables, azure_credentials, azure_networking, xc_config]
     name: "Azure VNET Site"

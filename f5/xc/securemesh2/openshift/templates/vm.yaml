@@ -1,0 +1,56 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: VM_NAME
+  namespace: VM_NAMESPACE
+  labels:
+    app: f5xc-sqa
+spec:
+  runStrategy: Always
+  template:
+    metadata:
+      labels:
+        app: f5xc-sqa
+    spec:
+      architecture: amd64
+      domain:
+        machine:
+          type: pc-q35-rhel9.6.0
+        resources:
+          requests:
+            cpu: "8"
+            memory: 32Gi
+        devices:
+          disks:
+            - name: f5xc-ocp-ce-disk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: outside-net
+              bridge: {}
+            - name: inside-net
+              bridge: {}
+      networks:
+        - name: outside-net
+          multus:
+            networkName: VM_NAMESPACE/slo-network
+        - name: inside-net
+          multus:
+            networkName: VM_NAMESPACE/ce-sli
+      volumes:
+        - name: f5xc-ocp-ce-disk
+          dataVolume:
+            name: DV_NAME
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              write_files:
+                - path: /etc/vpm/user_data
+                  permissions: '0644'
+                  owner: root
+                  content: |
+                    token: TOKEN

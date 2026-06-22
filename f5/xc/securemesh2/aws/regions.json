@@ -1,0 +1,35 @@
+{
+  "cloud": {
+    "aws": {
+      "regions": {
+        "us-east-1": {
+          "av_zones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c"
+          ]
+        },
+        "us-east-2": {
+          "av_zones": [
+            "us-east-2a",
+            "us-east-2b",
+            "us-east-2c"
+          ]
+        },
+        "us-west-1": {
+          "av_zones": [
+            "us-west-1a",
+            "us-west-1c"
+          ]
+        },
+        "us-west-2": {
+          "av_zones": [
+            "us-west-2a",
+            "us-west-2b",
+            "us-west-2c"
+          ]
+        }
+      }
+    }
+  }
+}

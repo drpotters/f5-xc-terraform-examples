@@ -10,10 +10,27 @@ on:
         description: "TF Cloud Workspace (optional)"
         required: false
         type: string
+      TF_VAR_prefix:
+        description: "Prefix used during apply (must match)"
+        required: false
+        type: string
+      XC_ENV:
+        description: "F5 XC environment"
+        required: false
+        default: "production"
+        type: string
   workflow_call:
     inputs:
       TF_CLOUD_WORKSPACE_AWS_VPC_SITE:
         description: "TF Cloud Workspace"
+        required: false
+        type: string
+      TF_VAR_prefix:
+        description: "Prefix used during apply (must match)"
+        required: false
+        type: string
+      XC_ENV:
+        description: "F5 XC environment"
         required: false
         type: string
     secrets:
@@ -21,21 +38,15 @@ on:
         required: true
       TF_CLOUD_ORGANIZATION:
         required: true
-      XC_API_P12_FILE:
-        required: true
-      XC_P12_PASSWORD :
-          required: true
-      XC_API_URL:
+      XC_API_TOKEN:
         required: true
       AWS_ACCESS_KEY:
         required: true
       AWS_SECRET_KEY:
         required: true
       AWS_SESSION_TOKEN:
-          required: true
-      XC_AWS_CLOUD_CREDENTIALS_NAME:
         required: false
-      
+
 jobs:
   aws_vpc_site:
     name: "AWS VPC Site Destroy"
@@ -44,34 +55,28 @@ jobs:
       run:
         working-directory: "./f5/xc/aws-vpc-site"
     env:
-      VOLT_API_URL: ${{ secrets.XC_API_URL }}
-      VOLT_API_P12_FILE: "./api.p12"
-      VES_P12_PASSWORD: ${{ secrets.XC_P12_PASSWORD }}
-      AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
-      AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
       AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
-      TF_VAR_aws_cloud_credentials_name: ${{ secrets.XC_AWS_CLOUD_CREDENTIALS_NAME }}
       TF_CLOUD_WORKSPACE_AWS_VPC_SITE: "aws-vpc-site"
-      TF_VAR_aws_region: "us-east-1"
-      TF_VAR_name: "aws-vpc-site"
-      TF_VAR_prefix: ""
-      TF_VAR_site_type: "ingress_gw"
-      TF_VAR_master_nodes_az_names: "[\"us-east-1a\"]"
-      TF_VAR_vpc_cidr: "10.10.0.0/16"
-      TF_VAR_local_subnets: "[\"10.10.1.0/24\"]"
+      TF_VAR_prefix: "f5xc-ce"
+      TF_VAR_region: "us-east-1"
+      TF_VAR_ami_name: ""
+      TF_VAR_ec2_instances_count: "1"
+      XC_ENV: "production"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          repository: f5devcentral/f5-xc-terraform-examples
-          
-      - id: apply_variables 
-        uses: "f5devcentral/f5-xc-terraform-examples/.github/actions/apply-variables@main" 
-        with: 
-          vars_json: "${{ toJSON(vars) }}" 
+          repository: drpotters/f5-xc-terraform-examples
+
+      - id: apply_variables
+        uses: "drpotters/f5-xc-terraform-examples/.github/actions/apply-variables@test"
+        with:
+          vars_json: "${{ toJSON(vars) }}"
           vars_prefix: "AWSVS_TF_VAR_"
-          inputs_json: "${{ toJSON(inputs) }}" 
+          inputs_json: "${{ toJSON(inputs) }}"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -81,9 +86,6 @@ jobs:
       - name: Setup Terraform Backend
         id: backend
         run: |
-          echo "${{secrets.XC_API_P12_FILE}}" | base64 -d > api.p12
-          echo VOLT_API_P12_FILE="$PWD/api.p12" >> "$GITHUB_ENV"
-
           cat > backend.tf << EOF
           terraform {
             cloud {
@@ -94,7 +96,7 @@ jobs:
             }
           }
           EOF
-          
+
       - name: Terraform Init
         id: init
         run: terraform init
@@ -102,3 +104,11 @@ jobs:
       - name: Terraform Destroy
         id: destroy
         run: terraform destroy -auto-approve -input=false
+
+      - name: Delete XC site object
+        working-directory: "."
+        run: |
+          export API_TOKEN="${{ secrets.XC_API_TOKEN }}"
+          SITE_NAME="${TF_VAR_prefix}-aws"
+          SCRIPTS_DIR="$GITHUB_WORKSPACE/f5/xc/securemesh2/scripts"
+          bash "${SCRIPTS_DIR}/manage_sm2_site.sh" delete "${SITE_NAME}" "${XC_ENV}" || true

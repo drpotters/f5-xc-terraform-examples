@@ -1,0 +1,62 @@
+# Generic settings
+http_port 3128
+coredump_dir /var/spool/squid
+cache_dir ufs /var/spool/squid 100 16 256
+include /etc/squid/conf.d/*.conf
+
+# Source ACL
+acl localnet src 0.0.0.1-0.255.255.255
+acl localnet src 10.0.0.0/8
+acl localnet src 172.16.0.0/12
+acl localnet src 192.168.0.0/16
+acl localnet src fc00::/7
+acl localnet src fe80::/10
+
+# Destination ACL
+acl f5xc_allowed_cidr dst "/etc/squid/allowed_cidrs.txt"
+acl f5xc_allowed_domains dstdomain "/etc/squid/f5xcdomains.txt"
+
+# Ports
+acl Safe_ports port 80          # HTTP
+acl Safe_ports port 443         # HTTPS
+acl Safe_ports port 1025-65535  # Non-reserved ports
+acl SSL_ports port 443          # SSL
+acl Safe_ports port 123         # NTP default
+acl Safe_ports port 53          # DNS default for 8.8.8.8 and 8.8.8.4
+acl Safe_ports port 4500        # IPSec tunnel connection
+
+# HTTP allow list
+http_access allow localhost manager
+http_access allow f5xc_allowed_domains Safe_ports
+http_access allow f5xc_allowed_domains SSL_ports
+http_access allow f5xc_allowed_cidr Safe_ports
+http_access allow f5xc_allowed_cidr SSL_ports
+
+# Define the authentication helper
+auth_param basic program /usr/lib/squid/basic_ncsa_auth /etc/squid/passwd
+auth_param basic realm Squid Proxy Authentication
+auth_param basic credentialsttl 2 hours
+
+# Allow authenticated users only
+acl authenticated proxy_auth REQUIRED
+http_access allow authenticated
+
+# HTTP Deny list
+http_access deny !Safe_ports
+http_access deny CONNECT !SSL_ports
+http_access deny manager
+http_access deny to_localhost
+http_access deny to_linklocal
+http_access deny all
+
+# Logging options
+access_log /var/log/squid/access.log squid
+
+# Refresh patterns for caching
+refresh_pattern ^ftp:   1440  20% 10080
+refresh_pattern -i (/cgi-bin/|\?) 0 0%  0
+refresh_pattern \/(Packages|Sources)(|\.bz2|\.gz|\.xz)$ 0 0% 0 refresh-ims
+refresh_pattern \/Release(|\.gpg)$ 0 0% 0 refresh-ims
+refresh_pattern \/InRelease$ 0 0% 0 refresh-ims
+refresh_pattern \/(Translation-.*)(|\.bz2|\.gz|\.xz)$ 0 0% 0 refresh-ims
+refresh_pattern .   0 20% 4320

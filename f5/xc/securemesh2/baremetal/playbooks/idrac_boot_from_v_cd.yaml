@@ -1,0 +1,62 @@
+- name: Dell OpenManage Ansible iDRAC boot operations.
+  hosts: idrac
+  vars_files:
+    - common_vars.yaml
+  gather_facts: false
+  tasks:
+    - name: "Insert virtual media"
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip }}{{ virtual_media_uri }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        method: "POST"
+        body_format: json
+        body:
+          Image: "http://{{ ansible_controller_host }}/{{ image_name }}"
+          Inserted: true
+          WriteProtected: true
+        use_proxy: true
+        status_code: 204
+        return_content: false
+        force_basic_auth: true
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+      tags:
+        - virtual_media
+        - vm_boot
+      delegate_to: localhost
+
+    - name: Boot once from mounted CD.
+      dellemc.openmanage.idrac_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        boot_source_override_mode: "{{ boot_source_mode }}"
+        boot_source_override_target: cd
+        boot_source_override_enabled: once
+      tags:
+        - boot_cd
+        - vm_boot
+      delegate_to: localhost
+
+    - name: Wait for system to boot up
+      wait_for:
+        port: 22
+        host: "{{ relevant_ce_node }}"
+        delay: 30
+        timeout: 3600
+      delegate_to: localhost
+
+    - name: Ejection of image file from idrac
+      dellemc.openmanage.idrac_virtual_media:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        force: true
+        virtual_media:
+          - insert: false
+      delegate_to: localhost

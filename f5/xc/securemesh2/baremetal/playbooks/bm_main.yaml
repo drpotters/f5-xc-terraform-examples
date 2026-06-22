@@ -1,0 +1,6 @@
+---
+#- name: Downloading SRE RHEL ISO file
+#  import_playbook: download_sre_rhel_iso.yaml
+
+- name: Install custom RHEL OS
+  import_playbook: idrac_boot_from_v_cd.yaml

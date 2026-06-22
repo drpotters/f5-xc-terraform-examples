@@ -1,0 +1,20 @@
+# inventory.ini
+[idrac]
+#10.218.31.153 idrac_ip=10.218.31.153 relevant_ce_node=10.218.55.197
+#10.218.31.154 idrac_ip=10.218.31.154 relevant_ce_node=10.218.55.198
+10.218.31.155 idrac_ip=10.218.31.155 relevant_ce_node=10.218.55.199
+
+[idrac:vars]
+user=root
+idrac_user=root
+password=Vol@032024
+idrac_password=Vol@032024
+
+[idrac_ce_nodes]
+#10.218.55.197 ansible_ssh_common_args='-o StrictHostKeyChecking=no' ce_node_name=bm-hyd-node-2
+#10.218.55.198 ansible_ssh_common_args='-o StrictHostKeyChecking=no' ce_node_name=bm-hyd-node-1
+10.218.55.199 ansible_ssh_common_args='-o StrictHostKeyChecking=no' ce_node_name=bm-hyd-node-0
+
+[idrac_ce_nodes:vars]
+ce_node_user=vesbkp
+ce_node_pass=RaengiiVeen123

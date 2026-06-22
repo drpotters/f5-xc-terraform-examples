@@ -1,0 +1,62 @@
+---
+- name: Generate YAML file from template
+  hosts: idrac_ce_nodes
+  vars:
+    ansible_user: "{{ ce_node_user }}"
+    ansible_ssh_pass: "{{ ce_node_pass }}"
+  tasks:
+    - name: Delete if any old copy of /tmp/user_data
+      ansible.builtin.file:
+        path: /tmp/user_data
+        state: absent
+      delegate_to: localhost
+
+    - name: Rendering the /tmp/user_data
+      ansible.builtin.template:
+        src: "{{ templates_dir }}/user_data.tmpl"
+        dest: "/tmp/user_data"
+      delegate_to: localhost
+
+    - name: Pushing user_data to Remote
+      become: yes
+      become_user: root
+      ansible.builtin.copy:
+        src: "/tmp/user_data"
+        dest: /etc/vpm/user_data
+
+    - name: Replace default interface name in certified-hardware.yaml with the custom intel based interface name
+      become: yes
+      become_user: root
+      ansible.builtin.replace:
+        path: /etc/vpm/certified-hardware.yaml
+        regexp: 'eno8303'
+        replace: 'eno12399'
+        
+    - name: Deleting old vpm processed files
+      become: yes
+      become_user: root
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/vpm/registration-obj.yml
+        - /etc/vpm/runner-config.yaml
+
+    - name: Stop VPM service to load new configuration
+      become: yes
+      become_user: root
+      ansible.builtin.service:
+        name: vpm
+        state: stopped
+
+    - name: Set the hostname as per the CE node name
+      become: yes
+      become_user: root
+      command: hostnamectl hostname "{{ ce_node_name }}"
+
+    - name: Start VPM service with newly loaded configuration
+      become: yes
+      become_user: root
+      ansible.builtin.service:
+        name: vpm
+        state: started

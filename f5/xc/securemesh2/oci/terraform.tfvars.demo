@@ -1,0 +1,5 @@
+f5xc_image_display_name = "f5xc-ce-9.2024.44-20250102051113"
+instance_count = 3
+node_token = "dummy"
+project_prefix = "auto-qa-oci"
+region = "us-phoenix-1"

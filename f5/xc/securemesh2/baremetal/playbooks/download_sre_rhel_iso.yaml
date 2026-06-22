@@ -1,0 +1,28 @@
+---
+- name: Download SMv2 ISO file from remote
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - common_vars.yaml
+  become: yes
+  become_user: root
+  tasks:
+    - name: Ensure the target directories exists
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ file_location }}"
+
+    - name: Check if image {{ image_name }} already exists at the path {{ file_location }}
+      ansible.builtin.stat:
+        path: "{{ file_location }}/{{ image_name }}"
+      register: image_check
+
+    - name: Download smv2 ISO file - {{ image_name }} at the path - {{ file_location }}
+      ansible.builtin.get_url:
+        url: "{{ image_src_url }}"
+        dest: "{{ file_location }}/{{ image_name }}"
+        mode: "0755"
+        timeout: 3600
+      when: not image_check.stat.exists

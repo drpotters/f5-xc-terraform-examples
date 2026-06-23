@@ -1,5 +1,9 @@
 #/bin/bash
 
+[ -z "${XC_API_TOKEN}" ] && ExitCall ERROR "XC_API_TOKEN is required"
+[ -z "${XC_API_URL}" ] && ExitCall ERROR "XC_API_URL is required"
+[ -z "${XC_TENANT_ID}" ] && ExitCall ERROR "XC_TENANT_ID is required"
+
 Logger() {
     local logLevel="${1}"
     local logMessage="${2}"
@@ -84,32 +88,50 @@ GetEnvDetails() {
   esac
 }
 
+
 CreateSM2SiteObject() {
-    GetEnvDetails # Retrieve the environment specific details before running the rest of the func() block
+    GetEnvDetails
     Logger INFO "Creating the site object ${site_name}"
+
     local ha_type=$([ "$ver_type" = "multi" ] && echo "enable_ha" || echo "disable_ha")
-    sed -e "s/CLUSTER_NAME/$site_name/g" -e "s/PROVIDER_NAME/$provider/g" -e "s/HA_TYPE/$ha_type/g" ${templates_dir}/site.json > ${platform_dir}/create_site.json
-    sed -e "s/CLUSTER_NAME/$site_name/g" ${templates_dir}/token.json > ${platform_dir}/site_token.json
-    response=$(curl -s -X 'POST' \
+
+    sed -e "s/CLUSTER_NAME/$site_name/g" \
+        -e "s/PROVIDER_NAME/$provider/g" \
+        -e "s/HA_TYPE/$ha_type/g" \
+        "${templates_dir}/site.json" > "${platform_dir}/create_site.json"
+
+    sed -e "s/CLUSTER_NAME/$site_name/g" \
+        "${templates_dir}/token.json" > "${platform_dir}/site_token.json"
+
+    response=$(curl -sS -w "\n%{http_code}" -X POST \
       "https://${api_url}/api/config/namespaces/system/securemesh_site_v2s" \
-      -H 'accept: application/data' \
-      -H 'Access-Control-Allow-Origin: *' \
+      -H 'accept: application/json' \
       -H 'Authorization: APIToken '"$XC_API_TOKEN" \
       -H 'x-volterra-apigw-tenant: '"$tenant_id" \
-      --data @${platform_dir}/create_site.json)
+      --data @"${platform_dir}/create_site.json")
 
-    body=$(printf '%s' "$response" | awk '/creation_timestamp/ {print "success"} ')
-    code=$(printf '%s' "$response" | tail -n1 | awk 'match($0, /"code":[0-9]+,/) { print substr($0, RSTART+7, RLENGTH-8) }')
+    body=$(printf '%s' "$response" | sed '$d')
+    http_code=$(printf '%s' "$response" | tail -n1)
 
-  Logger INFO "Response ${response}"
-    # Treat already-created as success
-    if [ "$code" = "200" ] || [ "$code" = "202" ] || [ "$code" = "204" ] || [ "$code" = "6" ] || [ "$body" = "success" ]; then
-      Logger INFO "Create site request completed (HTTP ${code}) for ${site_name}"
-      return 0
+    Logger INFO "Response body: ${body}"
+    Logger INFO "HTTP status: ${http_code}"
+
+    case "$http_code" in
+      200|201|202|204)
+        Logger INFO "Create site request completed (HTTP ${http_code}) for ${site_name}"
+        return 0
+        ;;
+    esac
+
+    if printf '%s' "$body" | jq -e . >/dev/null 2>&1; then
+      api_code=$(printf '%s' "$body" | jq -r '.code // empty')
+      api_msg=$(printf '%s' "$body" | jq -r '.message // .error // empty')
+      ExitCall ERROR "Unable to create the site object ${site_name}. HTTP ${http_code}. API code: ${api_code}. Message: ${api_msg}"
     fi
 
-    ExitCall ERROR "Unable to create the site object : (HTTP ${body}:${code}) ${site_name}."
+    ExitCall ERROR "Unable to create the site object ${site_name}. HTTP ${http_code}. Response: ${body}"
 }
+
 
 GetSiteToken() {
     local token_type=$1

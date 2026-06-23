@@ -56,7 +56,9 @@ jobs:
       - name: Run manage_sm2_site.sh
         id: manage_site
         env:
-          API_TOKEN: ${{ secrets.XC_API_TOKEN }}
+          XC_API_TOKEN: ${{ secrets.XC_API_TOKEN }}
+          XC_API_URL: ${{ secrets.XC_API_URL }}
+          XC_TENANT_ID: ${{ secrets.XC_TENANT_ID }}
         run: |
           SCRIPTS_DIR="$GITHUB_WORKSPACE/f5/xc/securemesh2/scripts"
           ACTION="${{ inputs.action }}"

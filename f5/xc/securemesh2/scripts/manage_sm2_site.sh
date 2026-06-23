@@ -90,19 +90,25 @@ CreateSM2SiteObject() {
     local ha_type=$([ "$ver_type" = "multi" ] && echo "enable_ha" || echo "disable_ha")
     sed -e "s/CLUSTER_NAME/$site_name/g" -e "s/PROVIDER_NAME/$provider/g" -e "s/HA_TYPE/$ha_type/g" ${templates_dir}/site.json > ${platform_dir}/create_site.json
     sed -e "s/CLUSTER_NAME/$site_name/g" ${templates_dir}/token.json > ${platform_dir}/site_token.json
-    curl -s -X 'POST' \
+    response=$(curl -s -X 'POST' \
       "https://${api_url}/api/config/namespaces/system/securemesh_site_v2s" \
       -H 'accept: application/data' \
       -H 'Access-Control-Allow-Origin: *' \
       -H 'Authorization: APIToken '"$XC_API_TOKEN" \
       -H 'x-volterra-apigw-tenant: '"$tenant_id" \
-      --data @${platform_dir}/create_site.json
+      --data @${platform_dir}/create_site.json)
 
-    if [ $? = 0 ];then
-      GetSiteToken
-    else 
-      ExitCall ERROR "Unable to create the site object : ${site_name}"
+    body=$(printf '%s' "$response" | awk '/creation_timestamp/ {print "success"} ')
+    code=$(printf '%s' "$response" | tail -n1 | awk 'match($0, /"code":[0-9]+,/) { print substr($0, RSTART+7, RLENGTH-8) }')
+
+  Logger INFO "Response ${response}"
+    # Treat already-created as success
+    if [ "$code" = "200" ] || [ "$code" = "202" ] || [ "$code" = "204" ] || [ "$code" = "6" ] || [ "$body" = "success" ]; then
+      Logger INFO "Create site request completed (HTTP ${code}) for ${site_name}"
+      return 0
     fi
+
+    ExitCall ERROR "Unable to create the site object : (HTTP ${body}:${code}) ${site_name}."
 }
 
 GetSiteToken() {
@@ -133,30 +139,53 @@ GetSiteToken() {
 }
 
 DeleteSM2SiteObject() {
-    GetEnvDetails # Retrieve the environment specific details before running the rest of the func() block
+    GetEnvDetails
     Logger INFO "Deleting the site object ${site_name} and its associated token"
-    curl -s -X 'DELETE' \
-      "https://${api_url}/api/config/namespaces/system/securemesh_site_v2s/${site_name}" \
-      -H 'accept: application/data' \
-      -H 'Access-Control-Allow-Origin: *' \
-      -H 'Authorization: APIToken '"$XC_API_TOKEN" \
-      -H 'x-volterra-apigw-tenant: '"$tenant_id"
 
-    if [ $? = 0 ];then
+    response=$(curl -s -w "\n%{http_code}" -X 'DELETE' \
+      "https://${api_url}/api/config/namespaces/system/securemesh_site_v2s/${site_name}" \
+      -H 'accept: application/json' \
+      -H 'Authorization: APIToken '"$XC_API_TOKEN" \
+      -H 'x-volterra-apigw-tenant: '"$tenant_id")
+
+    body=$(printf '%s' "$response" | sed '$d')
+    body_code=$(printf '%s' "$response" | tail -n1 | awk 'match($0, /"code":[0-9]+,/) { print substr($0, RSTART+7, RLENGTH-8) }')
+    exit_code=$(printf '%s' "$response" | tail -n1 )
+
+  Logger INFO "Response ${response}"
+
+    # Treat already-deleted/not-found as success for idempotency
+    if [ "$body_code" = "200" ] || [ "$body_code" = "202" ] || [ "$body_code" = "204" ] || [ "$body_code" = "404" ] || [ "$exit_code" = "200" ] || [ "$exit_code" = "202" ] || [ "$exit_code" = "204" ] || [ "$exit_code" = "404" ]; then
       DeleteSiteToken
-    else 
-      ExitCall ERROR "Unable to delete the site : ${site_name}. Remove it manually from UI or SIA"
+      Logger INFO "Delete site request completed (HTTP ${body_code}) ${exit_code} for ${site_name}"
+      return 0
     fi
+
+    Logger ERROR "Delete failed for ${site_name} (HTTP ${body_code}:${exit_code}). Response: ${body}"
+    ExitCall ERROR "Unable to delete the site : ${site_name}. Response: ${body}. Remove manually from UI or SIA"
 }
 
 DeleteSiteToken() {
-    #Logger INFO "Deleting the site token"
-    curl -s -X 'DELETE' \
+    Logger INFO "Deleting the site token"
+    response=$(curl -s -X 'DELETE' \
       "https://${api_url}/api/register/namespaces/system/tokens/${site_name}" \
       -H 'accept: application/data' \
       -H 'Access-Control-Allow-Origin: *' \
       -H 'Authorization: APIToken '"$XC_API_TOKEN" \
-      -H 'x-volterra-apigw-tenant: '"$tenant_id" >> /dev/null 2>&1
+      -H 'x-volterra-apigw-tenant: '"$tenant_id")
+    
+    body=$(printf '%s' "$response" | sed '$d')
+    body_code=$(printf '%s' "$response" | tail -n1 | awk 'match($0, /"code":[0-9]+,/) { print substr($0, RSTART+7, RLENGTH-8) }')
+    exit_code=$(printf '%s' "$response" | tail -n1 )
+
+    # Treat already-deleted/not-found as success for idempotency
+    if [ "$body_code" = "200" ] || [ "$body_code" = "202" ] || [ "$body_code" = "204" ] || [ "$body_code" = "404" ] || [ "$body_code" = "5" ] || [ "$exit_code" = "200" ] || [ "$exit_code" = "202" ] || [ "$exit_code" = "204" ] || [ "$exit_code" = "404" ] || [ "$exit_code" = "5" ]; then
+      Logger INFO "Deleted site token with response (HTTP ${body_code}:${exit_code}) for ${site_name}"
+      return 0
+    fi
+
+    Logger ERROR "Delete token failed for ${site_name} (HTTP ${code}). Response: ${body}"
+    ExitCall ERROR "Unable to delete token for the site : ${site_name}. Remove it manually from UI or SIA"
 }
 
 GetSiteStatus() {

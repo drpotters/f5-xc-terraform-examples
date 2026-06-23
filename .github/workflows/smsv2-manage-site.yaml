@@ -85,7 +85,7 @@ jobs:
               echo "::add-mask::${TOKEN}"
               echo "cluster_token=${TOKEN}" >> "$GITHUB_OUTPUT"
               echo "Cluster token retrieved successfully for site ${SITE_NAME}"
-              ;;              ;;
+              ;;
             deletetoken)
               bash "${SCRIPTS_DIR}/manage_sm2_site.sh" deletetoken "${SITE_NAME}" production
               ;;

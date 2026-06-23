@@ -82,7 +82,7 @@ jobs:
                 echo "ERROR: Failed to retrieve cluster token for site ${SITE_NAME}"
                 exit 1
               fi
-              echo "::add-mask::${TOKEN}"
+              echo "TOKEN:${TOKEN}"
               echo "cluster_token=${TOKEN}" >> "$GITHUB_OUTPUT"
               echo "Cluster token retrieved successfully for site ${SITE_NAME}"
               ;;

@@ -77,15 +77,15 @@ jobs:
               bash "${SCRIPTS_DIR}/manage_sm2_site.sh" status "${SITE_NAME}" production
               ;;
             token)
-              TOKEN=$(bash "${SCRIPTS_DIR}/manage_sm2_site.sh" token "${SITE_NAME}" production)
-              if [ -z "${TOKEN}" ]; then
+              TOKEN="$(bash "${SCRIPTS_DIR}/manage_sm2_site.sh" token "${SITE_NAME}" production 2>/dev/null | tail -n1 | tr -d '\r\n')"
+              if [ -z "${TOKEN}" ] || [ "${TOKEN}" = "null" ]; then
                 echo "ERROR: Failed to retrieve cluster token for site ${SITE_NAME}"
                 exit 1
               fi
               echo "::add-mask::${TOKEN}"
               echo "cluster_token=${TOKEN}" >> "$GITHUB_OUTPUT"
               echo "Cluster token retrieved successfully for site ${SITE_NAME}"
-              ;;
+              ;;              ;;
             deletetoken)
               bash "${SCRIPTS_DIR}/manage_sm2_site.sh" deletetoken "${SITE_NAME}" production
               ;;

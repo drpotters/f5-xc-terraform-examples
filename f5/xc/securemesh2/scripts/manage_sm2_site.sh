@@ -7,15 +7,15 @@
 Logger() {
     local logLevel="${1}"
     local logMessage="${2}"
-    fullDate=$(date +'%Y-%m-%d %M:%H:%S %Z')
-    printf "${fullDate} | ${logLevel} | ${logMessage}\n"
+    fullDate=$(date +'%Y-%m-%d %H:%M:%S %Z')
+    printf "%s | %s | %s\n" "$fullDate" "$logLevel" "$logMessage" >&2
 }
 
 ExitCall() {
     local exitLevel="${1}"
     local exitMessage="${2}"
-    fullDate=$(date +'%Y-%m-%d %M:%H:%S %Z')
-    printf "${fullDate} | ${exitLevel} | ${exitMessage}\n"
+    fullDate=$(date +'%Y-%m-%d %H:%M:%S %Z')
+    printf "%s | %s | %s\n" "$fullDate" "$exitLevel" "$exitMessage" >&2
     exit 1
 }
 

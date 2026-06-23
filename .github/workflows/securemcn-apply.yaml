@@ -165,7 +165,7 @@ jobs:
         uses: actions/checkout@v4
         
       - id: apply_variables 
-        uses: f5devcentral/f5-xc-terraform-examples/.github/actions/apply-variables@main
+        uses: drpotters/f5-xc-terraform-examples/.github/actions/apply-variables@test
         with: 
           vars_json: "${{ toJSON(vars) }}" 
           vars_prefix: "TF_VAR_"
@@ -270,7 +270,7 @@ jobs:
           echo 'tags: ${{ steps.output_vars.outputs.tags }}'
 
   aws_credentials: 
-    uses: f5devcentral/f5-xc-terraform-examples/.github/workflows/aws-cloud-credentials-apply.yaml@main
+    uses: drpotters/f5-xc-terraform-examples/.github/workflows/aws-cloud-credentials-apply.yaml@test
     if: (inputs.deployment == 'aws-vpc-site' || inputs.deployment == 'deploy-resources')
     name: "AWS Credentials"
     needs: [apply_variables]
@@ -292,7 +292,7 @@ jobs:
       XC_AWS_CLOUD_CREDENTIALS_NAME: ${{ secrets.XC_AWS_CLOUD_CREDENTIALS_NAME }}
 
   aws_networking: 
-    uses: f5devcentral/f5-xc-terraform-examples/.github/workflows/aws-networking-apply.yaml@main
+    uses: drpotters/f5-xc-terraform-examples/.github/workflows/aws-networking-apply.yaml@test
     if: (inputs.deployment == 'aws-vpc-site' || inputs.deployment == 'deploy-resources')
     name: "AWS Networking"
     needs: [apply_variables]
@@ -318,7 +318,7 @@ jobs:
       AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }} 
 
   aws_vpc_site: 
-    uses: f5devcentral/f5-xc-terraform-examples/.github/workflows/aws-vpc-site-apply.yaml@main
+    uses: drpotters/f5-xc-terraform-examples/.github/workflows/aws-vpc-site-apply.yaml@test
     if: (inputs.deployment == 'aws-vpc-site' || inputs.deployment == 'deploy-resources')
     needs: [apply_variables, aws_credentials, aws_networking, xc_config]
     name: "AWS VPC Site"
@@ -352,7 +352,7 @@ jobs:
       # XC_AWS_CLOUD_CREDENTIALS_NAME: ${{ needs.aws_credentials.outputs.aws_credentials_name }}
 
   azure_networking: 
-    uses: f5devcentral/f5-xc-terraform-examples/.github/workflows/azure-networking-apply.yaml@main
+    uses: drpotters/f5-xc-terraform-examples/.github/workflows/azure-networking-apply.yaml@test
     needs: [apply_variables]
     if: (inputs.deployment == 'azure-vnet-site' || inputs.deployment == 'deploy-resources')
     name: "Azure Networking"
@@ -379,7 +379,7 @@ jobs:
       AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
 
   azure_credentials: 
-    uses: f5devcentral/f5-xc-terraform-examples/.github/workflows/azure-cloud-credentials-apply.yaml@main
+    uses: drpotters/f5-xc-terraform-examples/.github/workflows/azure-cloud-credentials-apply.yaml@test
     needs: [apply_variables]
     if: (inputs.deployment == 'azure-vnet-site' || inputs.deployment == 'deploy-resources')
     name: "Azure Credentials"
@@ -404,7 +404,7 @@ jobs:
       XC_AZURE_CLOUD_CREDENTIALS_NAME: ${{ secrets.XC_AZURE_CLOUD_CREDENTIALS_NAME }}
 
   azure_vnet_site: 
-    uses: f5devcentral/f5-xc-terraform-examples/.github/workflows/azure-vnet-site-apply.yaml@main
+    uses: drpotters/f5-xc-terraform-examples/.github/workflows/azure-vnet-site-apply.yaml@test
     if: (inputs.deployment == 'azure-vnet-site' || inputs.deployment == 'deploy-resources')
     needs: [apply_variables, azure_credentials, azure_networking, xc_config]
     name: "Azure VNET Site"

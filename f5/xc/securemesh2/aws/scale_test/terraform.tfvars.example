@@ -1,0 +1,23 @@
+project_prefix     = "prefix"
+ssh_public_key     = "ssh-ed25519 ....."
+
+aws_site_count     = 0
+
+master_node_count  = 1
+worker_node_count  = 0
+
+# AWS
+aws_access_key      = ""
+aws_secret_key      = ""
+aws_owner_tag       = "user@mail.com"
+aws_region          = "us-east-2"
+aws_vpc_cidr        = "10.0.0.0/16"
+aws_availability_zones = [ "a", "b", "c"]
+aws_slo_subnets     = [ "10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+aws_sli_subnets     = [ "10.0.11.0/24", "10.0.12.0/24", "10.0.13.0/24"]
+
+aws_ami_name        = "f5xc-ce-9.2024.31-20241003081922"
+
+f5xc_api_url         = "https://tenant.console.ves.volterra.io/api"
+f5xc_api_token       = ""
+f5xc_tenant          = "tenant-........"

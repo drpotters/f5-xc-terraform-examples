@@ -1,0 +1,9 @@
+//This is just a demo tfvars file for your reference
+
+prefix                  = "my-test-proj" //change it
+ec2_instances_count     = "1" //change it
+region                  = "us-west-1" //change region
+ec2_azs                 = "["us-west-1a","us-west-1c"]" //according to the selected region
+ami_name                = "f5xc-ce-9.2024.22-20240807192140" //copy image name from the securemesh_v2 site object
+cluster_token           = "JWT token......" //generate and copy the node token here
+env                     = "production"  //set env variable ENVIRONMENT in the shell or jenkins

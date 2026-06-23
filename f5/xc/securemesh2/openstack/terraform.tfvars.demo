@@ -1,0 +1,5 @@
+node_prefix    = "dtummidi"
+cloud_name     = "os-xc-sjc"
+cluster_count  = "3"
+image_name     = "f5xc-ce-9.2025.17-20250422074005"
+cluster_token  = "<jwt_token>"

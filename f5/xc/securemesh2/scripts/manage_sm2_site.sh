@@ -75,8 +75,8 @@ fi
 GetEnvDetails() {
   case $env in
     production)
-      api_url="customer1.console.ves.volterra.io"
-      tenant_id="customer1"
+      api_url="${XC_API_URL}"
+      tenant_id="${XC_TENANT_ID}"
       ;;
     *)
       ExitCall ERROR "Invalid environment. Enter production"
@@ -94,7 +94,7 @@ CreateSM2SiteObject() {
       "https://${api_url}/api/config/namespaces/system/securemesh_site_v2s" \
       -H 'accept: application/data' \
       -H 'Access-Control-Allow-Origin: *' \
-      -H 'Authorization: APIToken '"$API_TOKEN" \
+      -H 'Authorization: APIToken '"$XC_API_TOKEN" \
       -H 'x-volterra-apigw-tenant: '"$tenant_id" \
       --data @${platform_dir}/create_site.json
 
@@ -118,7 +118,7 @@ GetSiteToken() {
       "https://${api_url}/api/register/namespaces/system/tokens" \
       -H 'accept: application/data' \
       -H 'Access-Control-Allow-Origin: *' \
-      -H 'Authorization: APIToken '"$API_TOKEN" \
+      -H 'Authorization: APIToken '"$XC_API_TOKEN" \
       -H 'x-volterra-apigw-tenant: '"$tenant_id" \
       --data @${token_file} | jq -r '.spec.content')
     
@@ -139,7 +139,7 @@ DeleteSM2SiteObject() {
       "https://${api_url}/api/config/namespaces/system/securemesh_site_v2s/${site_name}" \
       -H 'accept: application/data' \
       -H 'Access-Control-Allow-Origin: *' \
-      -H 'Authorization: APIToken '"$API_TOKEN" \
+      -H 'Authorization: APIToken '"$XC_API_TOKEN" \
       -H 'x-volterra-apigw-tenant: '"$tenant_id"
 
     if [ $? = 0 ];then
@@ -155,7 +155,7 @@ DeleteSiteToken() {
       "https://${api_url}/api/register/namespaces/system/tokens/${site_name}" \
       -H 'accept: application/data' \
       -H 'Access-Control-Allow-Origin: *' \
-      -H 'Authorization: APIToken '"$API_TOKEN" \
+      -H 'Authorization: APIToken '"$XC_API_TOKEN" \
       -H 'x-volterra-apigw-tenant: '"$tenant_id" >> /dev/null 2>&1
 }
 
@@ -170,7 +170,7 @@ GetSiteStatus() {
         "https://${api_url}/api/config/namespaces/system/sites/${site_name}?response_format=GET_RSP_FORMAT_DEFAULT" \
         -H 'accept: application/data' \
         -H 'Access-Control-Allow-Origin: *' \
-        -H 'Authorization: APIToken '"$API_TOKEN" \
+        -H 'Authorization: APIToken '"$XC_API_TOKEN" \
         -H 'x-volterra-apigw-tenant: '"$tenant_id")
     
     if [ -z "$response" ]; then
@@ -208,8 +208,8 @@ templates_dir="${install_dir}/templates"
 
 mkdir -p ${platform_dir}
 
-if [ -z ${API_TOKEN} ];then
-  ExitCall ERROR "Export the 'API_TOKEN' variable as a shell variable before running the script. export API_TOKEN='xxxxxxxx'"
+if [ -z ${XC_API_TOKEN} ];then
+  ExitCall ERROR "Export the 'XC_API_TOKEN' variable as a shell variable before running the script. export XC_API_TOKEN='xxxxxxxx'"
 fi
 
 case $action in

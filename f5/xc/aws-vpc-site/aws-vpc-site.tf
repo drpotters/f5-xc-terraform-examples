@@ -1,5 +1,5 @@
 module "aws_vpc_site" {
-  source                                   = "app.terraform.io/F5-DevCentral/aws-vpc-site-test/xc"
+  source                                   = "f5devcentral/aws-vpc-site-test/xc"
   version                                  = "1.0.0"
   site_name                                = ("" != var.prefix) ? format("%s-%s", var.prefix, var.name) : var.name
   aws_region                               = var.aws_region

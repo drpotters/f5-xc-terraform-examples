@@ -1,0 +1,92 @@
+name: "F5 XC CE SMSv2 Site Management"
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Action to perform"
+        required: true
+        type: choice
+        options:
+          - create
+          - delete
+          - status
+          - token
+          - deletetoken
+      site_name:
+        description: "Site name"
+        required: true
+        type: string
+      provider:
+        description: "Cloud provider (used by: create)"
+        required: true
+        type: choice
+        options:
+          - aws
+          - azure
+          - gcp
+          - kvm
+          - oci
+          - openshift
+          - openstack
+          - rseries
+          - vmware
+          - baremetal
+      cluster_type:
+        description: "Cluster type (used by: create)"
+        required: true
+        type: choice
+        options:
+          - single
+          - multi
+
+jobs:
+  manage_sm2_site:
+    name: "SMSv2 Site Management"
+    runs-on: ubuntu-latest
+    outputs:
+      cluster_token: ${{ steps.manage_site.outputs.cluster_token }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          repository: drpotters/f5-xc-terraform-examples
+
+      - name: Run manage_sm2_site.sh
+        id: manage_site
+        env:
+          XC_API_TOKEN: ${{ secrets.XC_API_TOKEN }}
+          XC_API_URL: ${{ secrets.XC_API_URL }}
+          XC_TENANT_ID: ${{ secrets.XC_TENANT_ID }}
+        run: |
+          SCRIPTS_DIR="$GITHUB_WORKSPACE/f5/xc/securemesh2/scripts"
+          ACTION="${{ inputs.action }}"
+          SITE_NAME="${{ inputs.site_name }}"
+          PROVIDER="${{ inputs.provider }}"
+          CLUSTER_TYPE="${{ inputs.cluster_type }}"
+
+          case "$ACTION" in
+            create)
+              bash "${SCRIPTS_DIR}/manage_sm2_site.sh" create "${SITE_NAME}" production "${PROVIDER}" "${CLUSTER_TYPE}"
+              ;;
+            delete)
+              bash "${SCRIPTS_DIR}/manage_sm2_site.sh" delete "${SITE_NAME}" production
+              ;;
+            status)
+              bash "${SCRIPTS_DIR}/manage_sm2_site.sh" status "${SITE_NAME}" production
+              ;;
+            token)
+              TOKEN="$(bash "${SCRIPTS_DIR}/manage_sm2_site.sh" token "${SITE_NAME}" production 2>/dev/null | tail -n1 | tr -d '\r\n')"
+              if [ -z "${TOKEN}" ] || [ "${TOKEN}" = "null" ]; then
+                echo "ERROR: Failed to retrieve cluster token for site ${SITE_NAME}"
+                exit 1
+              fi
+              echo "::add-mask::${TOKEN}"
+              echo "cluster_token=${TOKEN}" >> "$GITHUB_OUTPUT"
+              echo "Cluster token retrieved successfully for site ${SITE_NAME}"
+              ;;
+            deletetoken)
+              bash "${SCRIPTS_DIR}/manage_sm2_site.sh" deletetoken "${SITE_NAME}" production
+              ;;
+          esac

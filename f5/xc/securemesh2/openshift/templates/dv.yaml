@@ -1,0 +1,18 @@
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: DV_NAME
+  namespace: DV_NAMESPACE
+spec:
+  source:
+    pvc:
+      name: BASE_DV
+      namespace: DV_NAMESPACE
+  pvc:
+    storageClassName: managed-nfs-storage
+    accessModes:
+      - ReadWriteOnce
+    volumeMode: Filesystem
+    resources:
+      requests:
+        storage: 90Gi

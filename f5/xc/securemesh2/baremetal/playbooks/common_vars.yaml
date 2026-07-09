@@ -1,0 +1,8 @@
+---
+jenkins_user_home: "/var/lib/jenkins"
+ansible_become_pass: "dummy"
+ansible_python_interpreter: /usr/bin/python3
+virtual_media_uri: "/redfish/v1/Managers/iDRAC.Embedded.1/VirtualMedia/CD/Actions/VirtualMedia.InsertMedia"
+virtual_media_eject: "/redfish/v1/Managers/iDRAC.Embedded.1/VirtualMedia/CD/Actions/VirtualMedia.EjectMedia"
+file_location: "/var/www/html"
+boot_source_mode: "uefi"
